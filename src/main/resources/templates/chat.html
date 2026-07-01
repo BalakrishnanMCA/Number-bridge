@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chat</title>
+    <!-- <link rel="stylesheet" href="Number-bridge\src\main\resources\static\css\chat.css"> -->
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+      ** {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Roboto", sans-serif;
+      }
+
+      /* Main container */
+      body {
+        background: #f7f9fc;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      h2 {
+        color: #4a90e2;
+        margin-bottom: 15px;
+      }
+
+      /* Chat messages area */
+      #chatMessages {
+        flex: 1;
+        width: 100%;
+        max-width: 600px;
+        min-height: 400px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background: #e5e5ea;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      /* Messages */
+      #chatMessages .sent,
+      #chatMessages .received {
+        padding: 10px 15px;
+        border-radius: 20px;
+        max-width: 70%;
+        word-wrap: break-word;
+        position: relative;
+      }
+
+      #chatMessages .sent {
+        background: #4a90e2;
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 5px;
+      }
+
+      #chatMessages .received {
+        background: #f1f0f0;
+        color: #333;
+        align-self: flex-start;
+        border-bottom-left-radius: 5px;
+      }
+
+      /* Chat input container */
+      .chat-input {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        max-width: 600px;
+        margin-top: 10px;
+        background: #fff;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+      }
+
+      /* Input field */
+      #messageInput {
+        flex: 1;
+        padding: 10px 15px;
+        border-radius: 20px;
+        border: 1px solid #ccc;
+        outline: none;
+        font-size: 16px;
+      }
+
+      /* Buttons styling */
+      #sendBtn,
+      #plusBtn,
+      button[onclick] {
+        background: #4a90e2;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background 0.3s;
+        white-space: nowrap;
+      }
+
+      /* Hover */
+      #sendBtn:hover,
+      #plusBtn:hover,
+      button[onclick]:hover {
+        background: #357abd;
+      }
+
+      /* Plus button round */
+      #plusBtn {
+        font-size: 20px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        padding: 0;
+      }
+
+      /* Danger buttons (Block & Clear Chat) */
+      button[onclick*="toggleBlock"],
+      button[onclick*="clearChat"] {
+        background: #e74c3c;
+      }
+
+      button[onclick*="toggleBlock"]:hover,
+      button[onclick*="clearChat"]:hover {
+        background: #c0392b;
+      }
+
+      /* Chat images */
+      #chatMessages img {
+        max-width: 150px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+
+      #chatMessages img:hover {
+        transform: scale(1.05);
+      }
+
+      /* Responsive */
+      @media (max-width: 480px) {
+        #chatMessages {
+          max-width: 100%;
+          min-height: 300px;
+        }
+
+        #messageInput {
+          font-size: 14px;
+        }
+
+        #sendBtn,
+        #plusBtn,
+        button[onclick] {
+          font-size: 14px;
+          padding: 6px 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Chat Page</h2>
+
+    <!-- Chat messages area -->
+    <div id="chatMessages"></div>
+
+    <!-- Input + buttons -->
+    <div class="chat-input">
+      <input type="text" id="messageInput" placeholder="Type message..." />
+      <button id="plusBtn">+</button>
+      <input
+        type="file"
+        id="imageInput"
+        style="display: none"
+        accept="image/*"
+      />
+      <button id="sendBtn">Send</button>
+      <button onclick="toggleBlock()">Block/Unblock</button>
+      <button onclick="clearChat()">Clear Chat</button>
+    </div>
+    <!-- <script>
+    var stompClient = null; var blocked = false; var sender =
+    localStorage.getItem("userMobile"); // example login mobile var receiver =
+    localStorage.getItem("chatPartnerMobile"); // example partner function
+    connect() { var socket = new SockJS("/ws"); stompClient =
+    Stomp.over(socket); stompClient.connect({}, function () { // subscribe
+    messages stompClient.subscribe("/topic/messages", function (msg) {
+    showMessage(JSON.parse(msg.body)); }); // subscribe clear chat
+    stompClient.subscribe("/topic/clear", function () {
+    document.getElementById("chatMessages").innerHTML = ""; }); // load old
+    messages from MongoDB fetch(`/api/chat/${sender}/${receiver}`) //Api to call
+    the old messages .then((res) => res.json()) .then((messages) =>
+    messages.forEach(showMessage)); }); } function sendMessage() { if (blocked)
+    return; var msgContent = document.getElementById("messageInput").value; if
+    (msgContent) { stompClient.send( "/app/chat.sendMessage", {},
+    JSON.stringify({ sender: sender, receiver: receiver, content: msgContent,
+    chatStatus: {receiver:blocked}, type: "TEXT", }) );
+    document.getElementById("messageInput").value = ""; } } function
+    sendImage(file) { if (blocked) return; var reader = new FileReader();
+    reader.onload = function (e) { stompClient.send( "/app/chat.sendMessage",
+    {}, JSON.stringify({ sender: sender, receiver: receiver, content:
+    e.target.result, chatStatus: blocked, type: "IMAGE", }) ); };
+    reader.readAsDataURL(file); } function clearChat() { stompClient.send(
+    "/app/chat.clearChat", {}, JSON.stringify({ sender: sender, receiver:
+    receiver, }) ); } function toggleBlock() { blocked = !blocked;
+    document.getElementById("messageInput").disabled = blocked; } function
+    showMessage(msg) { var div = document.createElement("div"); div.className =
+    msg.sender === sender ? "sent" : "received"; console.log(msg.sender,
+    sender); if (msg.type === "TEXT" && msg.chatStatus!=true) { div.innerText =
+    msg.content; } else if (msg.type === "IMAGE" && msg.chatStatus!=true) { var
+    img = document.createElement("img"); img.src = msg.content;
+    img.style.maxWidth = "150px"; div.appendChild(img); }
+    document.getElementById("chatMessages").appendChild(div); }
+    document.getElementById("sendBtn").onclick = sendMessage;
+    document.getElementById("plusBtn").onclick = () =>
+    document.getElementById("imageInput").click();
+    document.getElementById("imageInput").onchange = (e) =>
+    sendImage(e.target.files[0]); connect();
+     </script> -->
+
+    <script>
+      var stompClient = null;
+      var sender = localStorage.getItem("userMobile"); // logged-in user
+      var receiver = localStorage.getItem("chatPartnerMobile"); // chat partner
+
+      // Keep track if current user has blocked receiver
+      var blockedUsers = {};
+
+      function connect() {
+        var socket = new SockJS("/ws");
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function () {
+          // Subscribe for messages
+          stompClient.subscribe("/topic/messages", function (msg) {
+            showMessage(JSON.parse(msg.body));
+          });
+
+          // Subscribe for clear chat
+          stompClient.subscribe("/topic/clear", function () {
+            document.getElementById("chatMessages").innerHTML = "";
+          });
+
+          // Load old messages
+          fetch(`/api/chat/${sender}/${receiver}`)
+            .then((res) => res.json())
+            .then((messages) => messages.forEach(showMessage));
+        });
+      }
+
+      // Toggle block/unblock
+      function toggleBlock() {
+        blockedUsers[receiver] = !blockedUsers[receiver];
+        document.getElementById("messageInput").disabled =
+          blockedUsers[receiver];
+        alert(
+          blockedUsers[receiver]
+            ? `You have blocked ${receiver}`
+            : `You have unblocked ${receiver}`
+        );
+      }
+
+      // Send text message
+      function sendMessage() {
+        var msgContent = document.getElementById("messageInput").value.trim();
+        if (!msgContent) return;
+
+        // Cannot send if current user blocked receiver
+        if (blockedUsers[receiver]) return;
+
+        stompClient.send(
+          "/app/chat.sendMessage",
+          {},
+          JSON.stringify({
+            sender: sender,
+            receiver: receiver,
+            content: msgContent,
+            type: "TEXT",
+            chatStatus: { blockedBySender: blockedUsers[receiver] || false },
+          })
+        );
+
+        document.getElementById("messageInput").value = "";
+      }
+
+      // Send image message
+      function sendImage(file) {
+        if (!file) return;
+        if (blockedUsers[receiver]) return;
+
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          stompClient.send(
+            "/app/chat.sendMessage",
+            {},
+            JSON.stringify({
+              sender: sender,
+              receiver: receiver,
+              content: e.target.result,
+              type: "IMAGE",
+              chatStatus: { blockedBySender: blockedUsers[receiver] || false },
+            })
+          );
+        };
+        reader.readAsDataURL(file);
+
+        document.getElementById("imageInput").value = "";
+      }
+
+      // Clear chat
+      function clearChat() {
+        stompClient.send(
+          "/app/chat.clearChat",
+          {},
+          JSON.stringify({
+            sender: sender,
+            receiver: receiver,
+          })
+        );
+      }
+
+      // Show message
+      function showMessage(msg) {
+        // Hide message if sender is blocked by current user
+        if (blockedUsers[msg.sender]) return;
+
+        var div = document.createElement("div");
+        div.className = msg.sender === sender ? "sent" : "received";
+
+        if (msg.type === "TEXT") {
+          div.innerText = msg.content;
+        } else if (msg.type === "IMAGE") {
+          var img = document.createElement("img");
+          img.src = msg.content;
+          div.appendChild(img);
+        }
+
+        const chatBox = document.getElementById("chatMessages");
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      // Event listeners
+      document.getElementById("sendBtn").onclick = sendMessage;
+      document.getElementById("plusBtn").onclick = () =>
+        document.getElementById("imageInput").click();
+      document.getElementById("imageInput").onchange = (e) =>
+        sendImage(e.target.files[0]);
+
+      document
+        .getElementById("messageInput")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter") sendMessage();
+        });
+
+      connect();
+    </script>
+  </body>
+</html>

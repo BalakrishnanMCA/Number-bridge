@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Register</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="/assets/app.js"></script>
+  </head>
+  <style>
+    /* Background and center alignment */
+    body {
+      font-family: "Roboto", Arial, Helvetica, sans-serif;
+      background-image: url("/assets/bg.jpg");
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    /* Large faded background text */
+    .number-bridge-bg {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 7rem;
+      color: rgba(255, 255, 255, 0.1); /* very faint */
+      /* font-weight: 750; */
+      z-index: 0;
+    }
+
+    /* Main container */
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      z-index: 1;
+    }
+
+    /* Card box */
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      padding: 30px 40px;
+      width: 400px;
+      color: #fff;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(20px);
+      text-align: center;
+    }
+
+    /* Heading */
+    .card h2 {
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+
+    /* Input fields */
+    .input {
+      width: 100%;
+      height: 50px;
+      background: transparent;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 40px;
+      font-size: 16px;
+      color: #fff;
+      padding: 0 20px;
+      margin: 15px 0;
+      outline: none;
+    }
+
+    .input::placeholder {
+      color: #ddd;
+    }
+
+    /* Buttons */
+    .button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      border-radius: 30px;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: background 0.3s ease;
+    }
+
+    /* Primary button */
+    .button-primary {
+      background: #3498db;
+      color: #fff;
+    }
+
+    .button-primary:hover {
+      background: #2980b9;
+    }
+
+    /* Register / Login link text */
+    .card p {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    .card a {
+      color: #4da6ff;
+      text-decoration: none;
+    }
+
+    .card a:hover {
+      text-decoration: underline;
+    }
+  </style>
+  <body>
+    <!-- 
+  <script type="text/babel">
+    function Register() {
+      const [name, setName] = React.useState('');
+      const [phoneNumber, setPhoneNumber] = React.useState('');
+
+      async function handleSubmit(e) {
+        e.preventDefault();
+        try {
+          await apiRequest('/api/register', 'POST', { name, phoneNumber });
+          alert('Registered successfully');
+          window.location.href = '/login.html';
+        } catch (err) {
+          alert('Error: ' + err.message);
+        }
+      }
+
+      return (
+        <div className="container">
+          <div className="card">
+            <h2>Register</h2>
+            <form onSubmit={handleSubmit}>
+              <input className="input" placeholder="Name" value={name} onChange={e=>setName(e.target.value)} required />
+              <input className="input" placeholder="Phone Number" value={phoneNumber} onChange={e=>setPhoneNumber(e.target.value)} required />
+              <button className="button button-primary" type="submit">Register</button>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<Register />, document.getElementById('root'));
+  </script> -->
+
+    <div class="number-bridge-bg">Number Bridge</div>
+
+    <div class="container">
+      <div class="card">
+        <h2>Register</h2>
+
+        <form th:action="@{/register}" method="Post">
+          <input
+            type="text"
+            name="name"
+            class="input"
+            placeholder="Name"
+            required
+          />
+          <input
+            type="text"
+            name="phoneNumber"
+            class="input"
+            placeholder="Phone Number"
+            required
+          />
+          <button class="button button-primary" type="submit">Register</button>
+        </form>
+
+        <p><span th:text="${ack}"></span></p>
+
+        <form th:action="@{/registerUser}" method="Post">
+          <input
+            type="text"
+            name="otp"
+            class="input"
+            placeholder="OTP"
+            required
+          />
+          <button class="button button-primary" type="submit">
+            Verify OTP
+          </button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

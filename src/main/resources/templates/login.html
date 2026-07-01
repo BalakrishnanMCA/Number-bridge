@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Login</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="/assets/app.js"></script>
+  </head>
+  <style>
+    /* Global body background and layout */
+    body {
+      font-family: "Roboto", Arial, Helvetica, sans-serif;
+      background-image: url("/assets/bg.jpg"); /* Make sure file exists in static/assets */
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      color: #fff;
+    }
+
+    /* Large faded background text (watermark) */
+    .number-bridge-bg {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 7rem;
+      color: rgba(255, 255, 255, 0.1); /* faint white */
+      /* font-weight: 750; */
+      z-index: 0;
+      pointer-events: none;
+      user-select: none;
+      text-align: center;
+      font-family: "Roboto", "Segoe UI", "Arial Black", Arial, Helvetica,
+        sans-serif;
+      text-shadow: 2px 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Main container */
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      z-index: 1;
+    }
+
+    /* Card (form box) */
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      padding: 30px 40px;
+      width: 400px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(20px);
+      text-align: center;
+    }
+
+    /* Headings */
+    .card h2 {
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+
+    /* Input fields */
+    .input {
+      width: 100%;
+      height: 50px;
+      background: transparent;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 40px;
+      font-size: 16px;
+      color: #fff; /* keep text white */
+      padding: 0 20px;
+      margin: 15px 0;
+      outline: none;
+    }
+
+    .input::placeholder {
+      color: #ddd;
+    }
+
+    /* Buttons */
+    .button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      border-radius: 30px;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: background 0.3s ease;
+    }
+
+    /* Primary button style */
+    .button-primary {
+      background: #3498db;
+      color: #fff;
+    }
+
+    .button-primary:hover {
+      background: #2980b9;
+    }
+
+    /* Text links inside card */
+    .card p {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    .card a {
+      color: #4da6ff;
+      text-decoration: none;
+    }
+
+    .card a:hover {
+      text-decoration: underline;
+    }
+
+    /* Error / status messages */
+    .error {
+      color: rgb(239, 11, 11);
+      font-size: 14px;
+      margin-top: 10px;
+    }
+  </style>
+  <body>
+    <!-- Watermark background -->
+    <div class="number-bridge-bg">Number Bridge</div>
+
+    <div class="container">
+      <div class="card">
+        <h2>Login</h2>
+
+        <form th:action="@{/sentOTP}" method="Post">
+          <input
+            type="text"
+            name="phoneNumber"
+            class="input"
+            placeholder="Phone Number"
+            id="num"
+            required
+          />
+          <button class="button button-primary" type="submit" onclick="call()">
+            Send OTP
+          </button>
+        </form>
+
+        <br />
+        <p class="error">otp sent to - <span th:text="${otp}"></span></p>
+
+        <form th:action="@{/verifyOTP}" method="Post">
+          <input
+            type="text"
+            name="otp"
+            class="input"
+            placeholder="Enter OTP"
+            required
+          />
+          <button class="button button-primary" type="submit">Verify</button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      function call() {
+        var num = document.getElementById("num").value;
+        localStorage.setItem("userMobile", num);
+        console.log(localStorage.getItem("userMobile"));
+      }
+    </script>
+  </body>
+</html>
